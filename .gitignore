@@ -1,0 +1,6 @@
+/.gradio
+/auto_measurements
+/bland_altman_plots
+/manual_measurements
+/StatisticResult_2.txt
+/__pycache__
