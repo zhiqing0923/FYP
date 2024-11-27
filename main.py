@@ -2,8 +2,13 @@ import gradio as gr
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
-from first_tab import first_tab
+from first_tab import AI_landmarks
 from second_tab import second_tab
+import numpy as np
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import cv2
+
+
 
 
 def matplotlib_to_html(fig):
@@ -27,17 +32,33 @@ def update_analysis_tab(coords, image, group, measurement):
     return image_with_vectors, measurements_html, line_plot_html
 
 
+def detect_landmarks(ceph_image_input):
+    annotated_image = AI_landmarks()
+    keypoints = annotated_image.process_image(ceph_image_input)
+
+    img_copy = ceph_image_input.copy()
+    for i, (x, y) in enumerate(keypoints):
+        img_copy = cv2.circle(img_copy, (x, y), 10, (0, 255, 0), -1)
+        img_copy = cv2.putText(img_copy, f"{i+1}", (x + 15, y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 2)
+    
+    img_copy_rgb = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
+    return keypoints, img_copy_rgb
+
 with gr.Blocks() as demo:
+    
     with gr.Tab("Upload and Detect"):
-        ceph_image_input = gr.Image(type="numpy", label="Upload Cephalogram Image", width=500, height=500)
-        coords_output = gr.JSON(label="Landmark Coordinates")
-        detect_button = gr.Button("Detect Landmarks")
-        
-        detect_button.click(
-            fn=first_tab, 
-            inputs=ceph_image_input, 
-            outputs=[coords_output, ceph_image_input]
-        )
+        with gr.Row():
+            ceph_image_input = gr.Image(type="numpy", label="Upload Cephalogram Image")
+            with gr.Column(): 
+                coords_output = gr.JSON(label="Landmark Coordinates")
+                detect_button = gr.Button("Detect Landmarks")
+                
+                detect_button.click(
+                    fn=detect_landmarks, 
+                    inputs=ceph_image_input, 
+                    outputs=[coords_output, ceph_image_input]
+
+            )
     
     with gr.Tab("Analysis"):
         with gr.Row():
