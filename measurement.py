@@ -5,7 +5,7 @@ thresholds = {
     "Malay": {
         "SNA": (81, 87),
         "SNB": (77, 85),
-        "ANB": (0, 6),
+        "ANB": (1, 5),
         "MMPA": (21, 31),
         "LFH": (55, 55),
         "U1A": (108, 120),
@@ -82,7 +82,7 @@ def calculate_angles_and_distances(normalized_coords):
 
     SNA = Angle(vectors["NS"], vectors["NA"]).theta()
     SNB = Angle(vectors["NS"], vectors["NB"]).theta()
-    ANB = SNA - SNB
+    ANB = abs(SNA - SNB)
     MMPA = Angle(vectors["GoMe"], vectors["PNS_ANS"]).theta()
     
     UFH = Distance.point_to_vector(points["N"], vectors["PNS_ANS"])

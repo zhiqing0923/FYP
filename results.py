@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-from coordinate import validate_coordinates, normalize_coordinates
 from measurement import calculate_angles_and_distances
 
 # Define file paths for the two CSV files
@@ -27,17 +26,6 @@ for index, (auto_row, manual_row) in enumerate(zip(auto_data.iterrows(), manual_
     # Extract coordinates (x0, y0 to x18, y18)
     auto_coordinates = np.array([(auto_row[1][f'x{i}'], auto_row[1][f'y{i}']) for i in range(19)])
     manual_coordinates = np.array([(manual_row[1][f'x{i}'], manual_row[1][f'y{i}']) for i in range(19)])
-
-    # # Validate coordinates
-    # validate_coordinates(auto_coordinates)
-    # validate_coordinates(manual_coordinates)
-
-    # # Define image size and normalize coordinates
-    # original_size = (1935, 2400)
-    # standardized_size = (1935, 2400)
-
-    # normalized_auto_coord = normalize_coordinates(auto_coordinates, original_size, standardized_size)
-    # normalized_manual_coord = normalize_coordinates(manual_coordinates, original_size, standardized_size)
 
     # Calculate angles and distances for auto and manual coordinates
     auto_eastman = calculate_angles_and_distances(auto_coordinates)
