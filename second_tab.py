@@ -59,40 +59,41 @@ def plot_line_analysis(value, mean, sd, lower_threshold, upper_threshold):
 
 
 def second_tab(coords, image, group, clicked_measurement=None):
-    if coords is None or image is None or group is None:
-        return None, None
-    
-    # Calculate angles and distances using the coordinates
-    points, vectors = define_vectors(coords)  # Get both points and vectors
-    eastman = calculate_angles_and_distances(coords)  # Get eastman measurements
-    
-    # Plot the landmarks on the image
-    image_with_landmarks = plot_landmarks(image, coords)
+    try:
+        if not coords or not isinstance(coords, list):
+            raise ValueError("Invalid or missing coordinates.")
+        if image is None:
+            raise ValueError("No image provided.")
+        
+        points, vectors = define_vectors(coords)
+        eastman = calculate_angles_and_distances(coords)
 
-    # Plot the vectors on the image with potential highlight for clicked measurement
-    image_with_vectors = plot_vectors(image_with_landmarks, vectors, highlight_measurement=clicked_measurement)
+        image_with_landmarks = plot_landmarks(image, coords)
+        if image_with_landmarks is None:
+            raise ValueError("Failed to plot landmarks.")
 
-    # Fetch the thresholds for the selected group
-    selected_thresholds = thresholds[group]
+        image_with_vectors = plot_vectors(image_with_landmarks, vectors, highlight_measurement=clicked_measurement)
 
-    # Prepare HTML output for measurements
-    measurements_html = "<ul>"
-    
-    measurement_names = ["SNA", "SNB", "ANB", "MMPA", "LFH", "U1A", "L1A"]
-    line_plot = None  # Initialize line plot as None
-    for name, measurement in zip(measurement_names, eastman):
-        lower_bound, upper_bound = selected_thresholds[name]
-        color = "red" if not (lower_bound <= measurement <= upper_bound) else "green"
-        measurements_html += f"<li style='color: {color}; font-size: 14px;'>{name}: {measurement:.2f}</li>"
+        selected_thresholds = thresholds[group]
 
-        # Generate a line plot for the clicked measurement
-        if clicked_measurement == name:
-            mean = (lower_bound + upper_bound) / 2
-            sd = (upper_bound - lower_bound) / 2  
-            line_plot = plot_line_analysis(measurement, mean, sd, lower_bound, upper_bound)
+        measurements_html = "<ul>"
+        measurement_names = ["SNA", "SNB", "ANB", "MMPA", "LFH", "U1A", "L1A"]
+        line_plot = None
+        for name, measurement in zip(measurement_names, eastman):
+            lower_bound, upper_bound = selected_thresholds.get(name, (None, None))
+            color = "red" if not (lower_bound <= measurement <= upper_bound) else "green"
+            measurements_html += f"<li style='color: {color}; font-size: 14px;'>{name}: {measurement:.2f}</li>"
 
-    measurements_html += "</ul>"
-    
-    return image_with_vectors, measurements_html, line_plot
+            if clicked_measurement == name:
+                mean = (lower_bound + upper_bound) / 2
+                sd = (upper_bound - lower_bound) / 2
+                line_plot = plot_line_analysis(measurement, mean, sd, lower_bound, upper_bound)
+
+        measurements_html += "</ul>"
+
+        return image_with_vectors, measurements_html, line_plot
+
+    except Exception as e:
+        return None, f"<p>Error: {str(e)}</p>", None
 
 
