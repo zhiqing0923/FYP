@@ -17,7 +17,6 @@ def plot_landmarks(image, coords):
 def plot_vectors(image, vectors, highlight_measurement=None):
     img_copy = image.copy()
     
-    # Define colors for normal and highlighted vectors
     normal_color = (0, 0, 255)  # Red
     highlight_color = (0, 255, 0)  # Green
 
@@ -32,7 +31,6 @@ def plot_vectors(image, vectors, highlight_measurement=None):
     }
     highlight_vectors = measurement_to_vectors.get(highlight_measurement, [])
     
-    # Iterate through vectors and plot them
     for vector_name, vector in vectors.items():
         color = highlight_color if vector_name in highlight_vectors else normal_color
         img_copy = cv2.line(img_copy, tuple(vector.start), tuple(vector.end), color, 2)
@@ -41,7 +39,6 @@ def plot_vectors(image, vectors, highlight_measurement=None):
     return img_copy_rgb
 
 def plot_line_analysis(value, mean, sd, lower_threshold, upper_threshold):
-    """Plot a line analysis for a specific measurement."""
     fig, ax = plt.subplots(figsize=(6, 1.5))
 
     ax.axvspan(lower_threshold, upper_threshold, color='red', alpha=0.3, label='Threshold Range')
@@ -49,7 +46,6 @@ def plot_line_analysis(value, mean, sd, lower_threshold, upper_threshold):
     ax.axvline(sd, color= 'none', label=f'SD: {sd}')
     ax.plot(value, 0, 'g^', markersize=12, label=f'Value: {value:.2f}')
 
-    # Add labels and legend
     ax.set_xlim(lower_threshold - 10, upper_threshold + 10)
     ax.set_yticks([])
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.2), fontsize='large')
@@ -59,41 +55,35 @@ def plot_line_analysis(value, mean, sd, lower_threshold, upper_threshold):
 
 
 def second_tab(coords, image, group, clicked_measurement=None):
-    try:
-        if not coords or not isinstance(coords, list):
-            raise ValueError("Invalid or missing coordinates.")
-        if image is None:
-            raise ValueError("No image provided.")
-        
-        points, vectors = define_vectors(coords)
-        eastman = calculate_angles_and_distances(coords)
+                  
+    points, vectors = define_vectors(coords)
+    eastman = calculate_angles_and_distances(coords)
 
-        image_with_landmarks = plot_landmarks(image, coords)
-        if image_with_landmarks is None:
-            raise ValueError("Failed to plot landmarks.")
+    image_with_landmarks = plot_landmarks(image, coords)
+    if image_with_landmarks is None:
+        raise ValueError("Failed to plot landmarks.")
 
-        image_with_vectors = plot_vectors(image_with_landmarks, vectors, highlight_measurement=clicked_measurement)
+    image_with_vectors = plot_vectors(image_with_landmarks, vectors, highlight_measurement=clicked_measurement)
 
-        selected_thresholds = thresholds[group]
+    selected_thresholds = thresholds[group]
 
-        measurements_html = "<ul>"
-        measurement_names = ["SNA", "SNB", "ANB", "MMPA", "LFH", "U1A", "L1A"]
-        line_plot = None
-        for name, measurement in zip(measurement_names, eastman):
-            lower_bound, upper_bound = selected_thresholds.get(name, (None, None))
-            color = "red" if not (lower_bound <= measurement <= upper_bound) else "green"
-            measurements_html += f"<li style='color: {color}; font-size: 14px;'>{name}: {measurement:.2f}</li>"
+    measurements_html = "<ul>"
+    measurement_names = ["SNA", "SNB", "ANB", "MMPA", "LFH", "U1A", "L1A"]
+    line_plot = None
+    for name, measurement in zip(measurement_names, eastman):
+        lower_bound, upper_bound = selected_thresholds.get(name, (None, None))
+        color = "red" if not (lower_bound <= measurement <= upper_bound) else "green"
+        measurements_html += f"<li style='color: {color}; font-size: 14px;'>{name}: {measurement:.2f}</li>"
 
-            if clicked_measurement == name:
-                mean = (lower_bound + upper_bound) / 2
-                sd = (upper_bound - lower_bound) / 2
-                line_plot = plot_line_analysis(measurement, mean, sd, lower_bound, upper_bound)
+        if clicked_measurement == name:
+            mean = (lower_bound + upper_bound) / 2
+            sd = (upper_bound - lower_bound) / 2
+            line_plot = plot_line_analysis(measurement, mean, sd, lower_bound, upper_bound)
 
-        measurements_html += "</ul>"
+    measurements_html += "</ul>"
 
-        return image_with_vectors, measurements_html, line_plot
+    return image_with_vectors, measurements_html, line_plot
 
-    except Exception as e:
-        return None, f"<p>Error: {str(e)}</p>", None
+   
 
 
