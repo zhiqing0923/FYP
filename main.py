@@ -22,14 +22,25 @@ def matplotlib_to_html(fig):
     return f"<img src='data:image/png;base64,{img_base64}'/>"
 
 
+import gradio as gr
+
 def update_analysis_tab(coords, image, group, measurement):
-    """Helper function to handle updates for the analysis tab."""
-    image_with_vectors, measurements_html, line_plot = second_tab(coords, image, group, measurement)
-    if line_plot:
-        line_plot_html = matplotlib_to_html(line_plot)
-    else:
-        line_plot_html = "<p>No plot available</p>"
-    return image_with_vectors, measurements_html, line_plot_html
+    if coords is None:
+        return gr.Warning("Missing coordinates. Please upload a valid cephalogram image and detect landmarks.")
+    if image is None:
+        return gr.Warning("No image provided. Please upload a valid cephalogram image.")
+    
+    try:
+        image_with_vectors, measurements_html, line_plot = second_tab(coords, image, group, measurement)
+        
+        if line_plot:
+            line_plot_html = matplotlib_to_html(line_plot)
+        else:
+            line_plot_html = "<p>No plot available</p>"
+
+        return image_with_vectors, measurements_html, line_plot_html
+    except Exception as e:
+        return gr.Warning(f"An error occurred: {str(e)}")
 
 
 def detect_landmarks(ceph_image_input):
@@ -60,7 +71,7 @@ with gr.Blocks() as demo:
 
             )
     
-    with gr.Tab("Analysis"):
+    with gr.Tab("Analysis") as analysis:
         with gr.Row():
             # Left side: Cephalogram with Landmarks
             ceph_image_plot = gr.Image(type="numpy", label="Cephalogram with Landmarks")
@@ -78,7 +89,7 @@ with gr.Blocks() as demo:
                 
 
         # Automatically initialize outputs when the tab is loaded
-        demo.load(
+        analysis.select(
             fn=update_analysis_tab, 
             inputs=[coords_output, ceph_image_input, group_selector, measurement_selector], 
             outputs=[ceph_image_plot, measurements_output, line_analysis_plot]

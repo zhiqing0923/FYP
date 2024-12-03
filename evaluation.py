@@ -17,7 +17,7 @@ SD = np.zeros(19)  # Standard Deviation
 manual_errors = np.zeros((num_patients, 19))  # Manual landmark errors for paired t-test
 
 # Prepare to write results to a file
-results_file_path = 'StatisticResult_2.txt'
+results_file_path = 'StatisticResult.txt'
 with open(results_file_path, 'w') as fid2:
     fid2.write('Landmark ID, MRE(mm), SD(mm), Successful detection rates with accuracy of less than 2.0mm, 2.5mm, 3.0mm, and 4.0mm\n')
 
@@ -30,7 +30,6 @@ with open(results_file_path, 'w') as fid2:
 
         # Compute radial errors for each landmark (19 landmarks)
         for x in range(19):
-            manual_errors[y, x] = (manual_coords[x, 0]**2 + manual_coords[x, 1]**2)**0.5  
             R[y, x] = (np.sqrt((manual_coords[x, 0] - auto_coords[x, 0])**2 + (manual_coords[x, 1] - auto_coords[x, 1])**2)) * 0.1  # Convert to mm
 
     # Calculate Mean Radial Error (MRE) and Standard Deviation (SD)
@@ -64,7 +63,6 @@ eastman_manual = []
 distances_auto = []
 distances_manual = []
 
-# Loop through patient IDs for angles and distances
 for patient_id in range(81):
     patient_id_str = str(patient_id).zfill(3)
     
@@ -78,27 +76,18 @@ for patient_id in range(81):
     manual_path = pd.read_csv(manual_file, header=None, skip_blank_lines=False).squeeze()
 
     eastman_auto.append(auto_path.iloc[:7].values)
-    # distances_auto.append(auto_path.iloc[9:].values)
     eastman_manual.append(manual_path.iloc[:7].values)
-    # distances_manual.append(manual_path.iloc[9:].values)
 
 eastman_auto = np.array(eastman_auto)
 eastman_manual = np.array(eastman_manual)
-# distances_auto = np.array(distances_auto)
-# distances_manual = np.array(distances_manual)
 
 # Paired t-test 
 eastman_ttest = stats.ttest_rel(eastman_auto, eastman_manual)
-# distances_ttest = stats.ttest_rel(distances_auto, distances_manual)
 
 with open(results_file_path, 'a') as fid2:
     fid2.write("\nPaired T-Test Results for Eastman Analysis:\n")
     for i in range(eastman_auto.shape[1]):
         fid2.write(f'Measurement {i+1}: t-statistic = {eastman_ttest.statistic[i]:.3f}, p-value = {eastman_ttest.pvalue[i]:.3f}\n')
-
-    # fid2.write("\nPaired T-Test Results for Distances:\n")
-    # for i in range(distances_auto.shape[1]):
-    #     fid2.write(f'Distance {i+1}: t-statistic = {distances_ttest.statistic[i]:.3f}, p-value = {distances_ttest.pvalue[i]:.3e}\n')
 
 # Bland-Altman plots 
 def bland_altman_plot(data1, data2, title, save_path):
@@ -126,9 +115,5 @@ os.makedirs(bland_altman_dir, exist_ok=True)
 for i in range(eastman_auto.shape[1]):
     bland_altman_plot(eastman_auto[:, i], eastman_manual[:, i], f'Bland-Altman Plot for Eastman Analysis {i+1}', 
                       os.path.join(bland_altman_dir, f'bland_altman_angle_{i+1}.png'))
-
-# for i in range(distances_auto.shape[1]):
-#     bland_altman_plot(distances_auto[:, i], distances_manual[:, i], f'Bland-Altman Plot for Distance {i+1}', 
-#                       os.path.join(bland_altman_dir, f'bland_altman_distance_{i+1}.png'))
 
 print("Results saved successfully.")

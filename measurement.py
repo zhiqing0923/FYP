@@ -77,8 +77,8 @@ def define_vectors(coords):
     }
     return points, vectors
 
-def calculate_angles_and_distances(normalized_coords):
-    points, vectors = define_vectors(normalized_coords)
+def calculate_angles_and_distances(coords):
+    points, vectors = define_vectors(coords)
 
     SNA = Angle(vectors["NS"], vectors["NA"]).theta()
     SNB = Angle(vectors["NS"], vectors["NB"]).theta()
