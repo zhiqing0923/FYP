@@ -7,7 +7,9 @@ thresholds = {
         "SNB": (77, 85),
         "ANB": (1, 5),
         "MMPA": (21, 31),
-        "LFH": (55, 55),
+        "UFH": (49,59),
+        "LFH": (60,70),
+        "LFH%": (55, 55),
         "U1A": (108, 120),
         "L1A": (116, 132),
     },
@@ -16,7 +18,9 @@ thresholds = {
         "SNB": (76, 84),
         "ANB": (1, 5),
         "MMPA": (21, 31),
-        "LFH": (55, 55),
+        "UFH": (49,59),
+        "LFH": (60,70),
+        "LFH%": (55, 55),
         "U1A": (106, 120),
         "L1A": (90, 100),
     },
@@ -25,7 +29,9 @@ thresholds = {
         "SNB": (76, 82),
         "ANB": (1, 5),
         "MMPA": (23, 33),
-        "LFH": (55, 55),
+        "UFH": (49,59),
+        "LFH": (60,70),
+        "LFH%": (55, 55),
         "U1A": (103, 115),
         "L1A": (87, 99),
     },
@@ -86,10 +92,10 @@ def calculate_angles_and_distances(coords):
     MMPA = Angle(vectors["GoMe"], vectors["PNS_ANS"]).theta()
     
     UFH = Distance.point_to_vector(points["N"], vectors["PNS_ANS"])
-    LFH_dist = Distance.point_to_vector(points["Me"], vectors["PNS_ANS"])
-    LFH = (LFH_dist / (LFH_dist + UFH)) * 100
+    LFH = Distance.point_to_vector(points["Me"], vectors["PNS_ANS"])
+    LFH_ratio = (LFH / (LFH + UFH)) * 100
 
     U1A = Angle(vectors["ANS_U1"], vectors["PNS_ANS"]).theta()
     L1A = Angle(vectors["MeL1"], vectors["GoMe"]).theta()
     
-    return [SNA, SNB, ANB, MMPA, LFH, U1A, L1A]
+    return [SNA, SNB, ANB, MMPA, UFH, LFH, LFH_ratio, U1A, L1A]
