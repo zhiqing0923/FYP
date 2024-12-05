@@ -17,7 +17,7 @@ SD = np.zeros(19)  # Standard Deviation
 manual_errors = np.zeros((num_patients, 19))  # Manual landmark errors for paired t-test
 
 # Prepare to write results to a file
-results_file_path = 'StatisticResult.txt'
+results_file_path = 'StatisticResult.csv'
 with open(results_file_path, 'w') as fid2:
     fid2.write('Landmark ID, MRE(mm), SD(mm), Successful detection rates with accuracy of less than 2.0mm, 2.5mm, 3.0mm, and 4.0mm\n')
 
@@ -75,8 +75,8 @@ for patient_id in range(81):
     auto_path = pd.read_csv(auto_file, header=None, skip_blank_lines=False).squeeze()
     manual_path = pd.read_csv(manual_file, header=None, skip_blank_lines=False).squeeze()
 
-    eastman_auto.append(auto_path.iloc[:7].values)
-    eastman_manual.append(manual_path.iloc[:7].values)
+    eastman_auto.append(auto_path.iloc[:9].values)
+    eastman_manual.append(manual_path.iloc[:9].values)
 
 eastman_auto = np.array(eastman_auto)
 eastman_manual = np.array(eastman_manual)
