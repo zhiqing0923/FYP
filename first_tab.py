@@ -12,72 +12,138 @@ class AI_landmarks():
         self.original_width= 0
         self.target_width= 224
         self.target_height= 224
-        self.scale = 0 
-        self.x_offset=0
-        self.y_offset=0
-
-    def process_model(self,normalized_image):
-        image = tf.convert_to_tensor(normalized_image)
-
-        if len(image.shape) == 3:
-            image = np.expand_dims(image, axis=0)
-
-        model = load_model('vgg19_model_11.h5')
-
-        predicted_keypoints = model.predict(image)
-        predicted_keypoints = tf.reshape(predicted_keypoints, (image.shape[0], -1, 2))
-
-        # Convert TensorFlow tensor to NumPy array for modification
-        predicted_keypoints = predicted_keypoints.numpy()
-
-        # Denormalize the keypoints coordinates to range [0, original_width] and [0, original_height]
-        predicted_keypoints = predicted_keypoints * np.array([self.original_width, self.original_height])
-
-        # Adjust keypoints for the cropping offset: shift x-coordinates by x_offset
-        # After cropping, the new x-coordinates should reflect the cropped image
-        predicted_keypoints[:, 0] = predicted_keypoints[:, 0] - self.x_offset  # Correct x-coordinate by subtracting x_offset
-
-        # Now rescale keypoints to match the resized image dimensions (1935, 2400)
-        scale_x = 1935 / (self.original_width - 2 * self.x_offset)  # The width after cropping
-        scale_y = 2400 / self.original_height  # The full height remains the same
+        self.cropped_image_width=0
+        self.cropped_image_height=0
+        self.min_x=0
+        self.min_y=0
 
 
-        predicted_keypoints[:, 0] = predicted_keypoints[:, 0] * scale_x
-        predicted_keypoints[:, 1] = predicted_keypoints[:, 1] * scale_y
+    #Function to get the bounding box coordinates 
+    def process_model_1(self,normalized_image):
+
+        # Path to the TFLite model file
+        tflite_model_path = "bounding_box_6.tflite"
+
+        # Load the TFLite model
+        interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
+
+        # Allocate tensors (initialize model)
+        interpreter.allocate_tensors()
+
+        # Get input and output details
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+
+        # Ensure the input tensor is float32
+        normalized_image = normalized_image.astype('float32')
+
+        # Set the input tensor
+        interpreter.set_tensor(input_details[0]['index'], normalized_image)
+
+        # Run inference
+        interpreter.invoke()
+        bounding_box_coordinates = interpreter.get_tensor(output_details[0]['index'])
         
-        return predicted_keypoints 
+
+        box_keypoint = bounding_box_coordinates[0] * np.array([self.original_width, self.original_height, self.original_width, self.original_height])
+        
+        return box_keypoint 
+    
+    #Function to get 19 keypoints 
+    def process_model_2(self,normalized_image):
+        
+
+        # Path to the TFLite model file
+        tflite_model_path = "vgg19_keypoints.tflite"
+
+        # Load the TFLite model
+        interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
+
+        # Allocate tensors (initialize model)
+        interpreter.allocate_tensors()
+
+        # Get input and output details
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+        
+
+        # Ensure the input tensor is float32
+        normalized_image = normalized_image.astype('float32')
+
+        # Set the input tensor
+        interpreter.set_tensor(input_details[0]['index'], normalized_image)
+
+        # Run inference
+        interpreter.invoke()
+        keypoints = interpreter.get_tensor(output_details[0]['index'])
+        
+
+        
+        
+        keypoints = keypoints[0]
+        keypoints = keypoints.reshape(-1, 2)
+
+        #denormalize keypoints and rescale it back to original dimension
+        keypoints = keypoints * np.array([self.cropped_image_width, self.cropped_image_height])
+        keypoints = keypoints + np.array([self.min_x, self.min_y])
+
+        
+
+        return keypoints 
 
     def process_image(self,image):
         self.original_width = image.shape[1]
         self.original_height = image.shape[0]
         
 
-        # Compute the scaling factors for width and height based on the smaller dimension
-        scale_width = self.target_width / self.original_width
-        scale_height = self.target_height / self.original_height
-        self.scale = min(scale_width, scale_height)
-
-        # Compute the new width and height after scaling
-        new_width = int(self.original_width * self.scale)
-        new_height = int(self.original_height * self.scale)
-
         # Resize the image using cv2.resize function with interpolation=cv2.INTER_AREA
-        resized_image = cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_AREA)
-
-        # Crop the resized image to match the target width and height from the center
-        cropped_image = np.zeros((self.target_height, self.target_width, 3), dtype=np.uint8)
-        self.x_offset = (self.target_width - new_width) // 2
-        self.y_offset = (self.target_height - new_height) // 2
-        cropped_image[self.y_offset:self.y_offset + new_height, self.x_offset:self.x_offset + new_width] = resized_image
+        resized_image = cv2.resize(image, (self.target_width, self.target_height), interpolation=cv2.INTER_AREA)
+       
+        if len(resized_image.shape) == 3:
+            resized_image = np.expand_dims(resized_image, axis=0)
+       
         
         # Normalize the cropped image pixels to range [0, 1]
-        normalized_image = cropped_image / 255.0
+        normalized_image = resized_image / 255.0
         
-        keypoints=self.process_model(normalized_image)
+        #Get bounding_box coordinates
+        bounding_box_coordinates=self.process_model_1(normalized_image)
+
+        min_x, min_y, max_x, max_y= bounding_box_coordinates
+
+        # Ensure indices are integers
+        min_y = int(min_y)
+        max_y = int(max_y)
+        min_x = int(min_x)
+        max_x = int(max_x)
+
+
+        # Crop the image with the bounding_box_coordinates 
+        cropped_image = image[min_y:max_y, min_x:max_x]
+
+        #Store data 
+        self.min_x=min_x
+        self.min_y=min_y
+        self.cropped_image_width = cropped_image.shape[1]
+        self.cropped_image_height = cropped_image.shape[0]
+
+        # Resize the cropped image
+        cropped_resized_image = cv2.resize(cropped_image, (224, 224), interpolation=cv2.INTER_AREA)
+
+        if len(cropped_resized_image.shape) == 3:
+            cropped_resized_image = np.expand_dims(cropped_resized_image, axis=0)
+
+        # Normalize the image to the range [0, 1] if required by the model
+        cropped_normalized_image = cropped_resized_image / 255.0
+    
+
+        #Get bounding_box coordinates
+        keypoints=self.process_model_2(cropped_normalized_image)
+        
+
         keypoints_squeezed = np.squeeze(keypoints)
 
         keypoints_squeezed = [tuple(map(int, coord)) for coord in keypoints_squeezed]
-
         
         return keypoints_squeezed
       

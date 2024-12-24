@@ -7,6 +7,8 @@ from second_tab import second_tab
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import cv2
+from PIL import Image
+
 
 
 
@@ -41,19 +43,51 @@ def update_analysis_tab(coords, image, group, measurement):
         return image_with_vectors, measurements_html, line_plot_html
     except Exception as e:
         return gr.Warning(f"An error occurred: {str(e)}")
+    
+def is_cephalometric_image(image):
+    try:
+        # Check if the image is valid
+        pil_image = Image.fromarray(image)
+        
+        # Basic checks: Dimensions
+        width, height = pil_image.size
+        if width < 500 or height < 500:
+            return False, "Image dimensions are too small to be a cephalometric image."
+
+        
+
+        # Additional advanced validation could be added here
+        # e.g., using a pre-trained classifier to check for cephalometric features.
+
+        return True, "Valid cephalometric image."
+    except Exception as e:
+        return False, f"Invalid image: {str(e)}"
 
 
 def detect_landmarks(ceph_image_input):
-    annotated_image = AI_landmarks()
-    keypoints = annotated_image.process_image(ceph_image_input)
+    if ceph_image_input is None:
+        return {"error": "Please upload a Cephalogram image."}, None
 
-    img_copy = ceph_image_input.copy()
-    for i, (x, y) in enumerate(keypoints):
-        img_copy = cv2.circle(img_copy, (x, y), 10, (0, 255, 0), -1)
-        img_copy = cv2.putText(img_copy, f"{i+1}", (x + 15, y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 2)
-    
-    img_copy_rgb = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
-    return keypoints, img_copy_rgb
+    # Validate the image
+    is_valid, message = is_cephalometric_image(ceph_image_input)
+    if not is_valid:
+        return {"error": message}, None
+
+    try:
+        # Example processing (replace with your AI_landmarks logic)
+        ceph_image = AI_landmarks()
+        keypoints = ceph_image.process_image(ceph_image_input)
+
+        img_copy = ceph_image_input.copy()
+        for i, (x, y) in enumerate(keypoints):
+            img_copy = cv2.circle(img_copy, (x, y), 10, (0, 255, 0), -1)
+            img_copy = cv2.putText(img_copy, f"{i+1}", (x + 15, y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 2)
+
+        img_copy_rgb = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
+        return keypoints, img_copy_rgb
+    except Exception as e:
+        return {"error": f"An error occurred during processing: {str(e)}"}, None
+
 
 with gr.Blocks() as demo:
     
