@@ -1,6 +1,16 @@
 /.gradio
 /auto_measurements
-/bland_altman_plots
 /manual_measurements
-/StatisticResult_2.txt
+/bland_altman_plots
+/auto_measurements_2
+/manual_measurements_2
+/bland_altman_plots_2
+/StatisticResult.csv
+/StatisticResult_2.csv
+/val_keypoints.csv
+/val_predictions_keypoints.csv
+/Validation keypoints (2).csv
+/Validation predictions (2).csv
 /__pycache__
+
+.venv/

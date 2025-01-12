@@ -22,7 +22,7 @@ class AI_landmarks():
     def process_model_1(self,normalized_image):
 
         # Path to the TFLite model file
-        tflite_model_path = "bounding_box_6.tflite"
+        tflite_model_path = "bouding_box_17.tflite"
 
         # Load the TFLite model
         interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
@@ -54,7 +54,9 @@ class AI_landmarks():
         
 
         # Path to the TFLite model file
-        tflite_model_path = "vgg19_keypoints.tflite"
+        tflite_model_path = "vgg19_2nd model_last.tflite"
+        # tflite_model_path = "vgg19_keypoints.tflite"
+        
 
         # Load the TFLite model
         interpreter = tf.lite.Interpreter(model_path=tflite_model_path)

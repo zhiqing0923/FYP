@@ -44,20 +44,17 @@ def update_analysis_tab(coords, image, group, measurement):
     except Exception as e:
         return gr.Warning(f"An error occurred: {str(e)}")
     
+    
 def is_cephalometric_image(image):
     try:
         # Check if the image is valid
         pil_image = Image.fromarray(image)
-        
-        # Basic checks: Dimensions
-        width, height = pil_image.size
-        if width < 500 or height < 500:
-            return False, "Image dimensions are too small to be a cephalometric image."
 
-        
+        image_array = np.array(image)
 
-        # Additional advanced validation could be added here
-        # e.g., using a pre-trained classifier to check for cephalometric features.
+        if not (np.all(image_array[:, :, 0] == image_array[:, :, 1]) and np.all(image_array[:, :, 1] == image_array[:, :, 2])):
+            raise ValueError("The image is not an X-ray. Please provide a cephalogram image.")
+
 
         return True, "Valid cephalometric image."
     except Exception as e:

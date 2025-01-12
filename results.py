@@ -4,8 +4,8 @@ import pandas as pd
 from measurement import calculate_angles_and_distances
 
 # Define file paths for the two CSV files
-auto_csv_path = 'val_predictions_keypoints.csv'
-manual_csv_path = 'val_keypoints.csv'
+auto_csv_path = 'Validation keypoints (without bounding box (1).csv'
+manual_csv_path = 'Validation predictions (without bounding box) (1).csv'
 
 # Define output directories for results
 auto_measurements_path = 'auto_measurements'
@@ -23,9 +23,9 @@ for index, (auto_row, manual_row) in enumerate(zip(auto_data.iterrows(), manual_
     patient_id = 1 + index  
     patient_id_str = str(patient_id).zfill(3)
     
-    # Extract coordinates (x0, y0 to x18, y18)
-    auto_coordinates = np.array([(auto_row[1][f'x{i}'], auto_row[1][f'y{i}']) for i in range(19)])
-    manual_coordinates = np.array([(manual_row[1][f'x{i}'], manual_row[1][f'y{i}']) for i in range(19)])
+    # Extract coordinates (x1, y1 to x18, y18)
+    auto_coordinates = np.array([(auto_row[1][f'x{i+1}'], auto_row[1][f'y{i+1}']) for i in range(19)])
+    manual_coordinates = np.array([(manual_row[1][f'x{i+1}'], manual_row[1][f'y{i+1}']) for i in range(19)])
 
     # Calculate angles and distances for auto and manual coordinates
     auto_eastman = calculate_angles_and_distances(auto_coordinates)
