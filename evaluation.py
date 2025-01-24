@@ -14,7 +14,6 @@ num_patients = 99
 R = np.zeros((num_patients, 19))  # Radial errors
 MRE = np.zeros(19)  # Mean Radial Error
 SD = np.zeros(19)  # Standard Deviation
-manual_errors = np.zeros((num_patients, 19))  # Manual landmark errors for paired t-test
 
 # Prepare to write results to a file
 results_file_path = 'StatisticResult.csv'

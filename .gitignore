@@ -7,10 +7,12 @@
 /bland_altman_plots_2
 /StatisticResult.csv
 /StatisticResult_2.csv
-/val_keypoints.csv
-/val_predictions_keypoints.csv
-/Validation keypoints (2).csv
-/Validation predictions (2).csv
+/Validation keypoints_2nd_Method.csv
+/Validation keypoints_FM.csv
+/Validation predictions_2nd_Method.csv
+/Validation predictions_FM.csv
+
 /__pycache__
+
 
 .venv/

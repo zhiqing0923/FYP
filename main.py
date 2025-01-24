@@ -109,7 +109,7 @@ with gr.Blocks() as demo:
 
             # Right side: Measurement controls and output
             with gr.Column():
-                group_selector = gr.Dropdown(label="Select Demographic Group", choices=["Malay", "Chinese", "Indian"], value="Malay")
+                group_selector = gr.Dropdown(label="Select Demographic Group", choices=["Malay", "Chinese", "Indian"], value="Malay") # Default to Malay
                 measurement_selector = gr.Radio(
                     choices=["SNA", "SNB", "ANB", "MMPA", "UFH", "LFH", "LFH%", "U1A", "L1A"], 
                     label="Select Measurement", 
